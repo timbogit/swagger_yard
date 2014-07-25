@@ -25,6 +25,7 @@ module SwaggerYard
       case yard_object.type
       when :class
         add_listing_info(ListingInfo.new(yard_object))
+        add_authorizations_to_resource_listing(yard_object)
       when :method
         add_api(Api.new(@resource_listing, yard_object))
       end
@@ -49,6 +50,13 @@ module SwaggerYard
       end 
     end
 
+    # HACK, requires knowledge of resource_listing
+    def add_authorizations_to_resource_listing(yard_object)
+      yard_object.tags.select {|t| t.tag_name == "authorization"}.each do |t|
+        @resource_listing.authorizations << Authorization.from_yard_object(t)
+      end
+    end
+
     def resource_name
       @resource_path
     end
@@ -59,12 +67,12 @@ module SwaggerYard
 
     def to_h
       { 
-        "apiVersion"     => SwaggerYard.config.api_version,
-        "swaggerVersion" => SwaggerYard.config.swagger_version,
-        "basePath"       => SwaggerYard.config.api_base_path,
-        "resourcePath"   => resource_path,
-        "apis"           => apis.values,
-        "models"         => models.map(&:to_h)
+        "apiVersion"      => SwaggerYard.config.api_version,
+        "swaggerVersion"  => SwaggerYard.config.swagger_version,
+        "basePath"        => SwaggerYard.config.api_base_path,
+        "resourcePath"    => resource_path,
+        "apis"            => apis.values,
+        "models"          => models.map(&:to_h)
       }
     end
 
